@@ -110,7 +110,7 @@ d3.csv("data/schools.csv").then(function (csvData) {
                                 Poverty Percent of Zip: ${(
                                   properties.povertyPercent * 100
                                 ).toFixed(2)}%<br>
-                                Student Disadvantaged Rate Relative to Community (% Difference): ${(
+                                Student Disadvantaged Rate Relative to Surrounding Poverty Rate (% Difference): ${(
                                   properties.percentCommunityDifference * 100
                                 ).toFixed(2)}%<br>
                                 Population of Zip: ${properties.population}<br>
