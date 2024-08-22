@@ -4,11 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mapbox with D3.js and CSV Data</title>
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js"></script>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Mapbox CSS -->
     <link
       href="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css"
       rel="stylesheet"
     />
+    <!-- D3.js -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
       body {
@@ -22,13 +28,74 @@
         width: 100%;
         height: 100%;
       }
+      #header {
+        position: absolute;
+        width: 500px;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+        border-radius: 3px;
+      }
     </style>
   </head>
   <body>
-    <h1>Economically Disadvantaged High School Students by Zip Code</h1>
+    <div id="header" class="container-fluid">
+      <h1 class="h4">Economically Disadvantaged Students</h1>
+      <h6>Orleans Parish High Schools by Zip</h6>
+      <div>Prepared by Jenna deBoisblanc</div>
+      <br />
+      <br />
+      <div class="mb-4">
+        <h6>Select a metric:</h6>
+        <select id="color-metric" class="form-control">
+          <option value="econDisadv">
+            # of Economically Disadvantaged Students
+          </option>
+          <option value="percentDisadv">
+            Average % Economically Disadvantaged
+          </option>
+          <option value="numberOfSchools">Number of Schools</option>
+          <option value="totalStudents">Total Enrolled Students</option>
+
+          <option value="population">Population of Zip</option>
+          <option value="povertyPercent">Poverty % of Zip</option>
+          <option value="percentCommunityDifference">
+            Student Disadvantaged Rate Relative to Surrounding Community (%
+            Difference)
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <h6>Legend</h6>
+        <div id="legend-items"></div>
+      </div>
+    </div>
 
     <div id="map"></div>
 
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js"></script>
+
+    <!-- custom scripts -->
+    <script src="colorScales.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

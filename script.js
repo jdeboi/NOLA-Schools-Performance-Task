@@ -4,8 +4,8 @@ mapboxgl.accessToken =
 const map = new mapboxgl.Map({
   container: "map",
   style: "mapbox://styles/jdeboi/clxwdfwei04pd01qo5hvm9rs7",
-  center: [-90.0715, 29.9511], // Centered on New Orleans
-  zoom: 11,
+  center: [-89.95, 30], // Centered on New Orleans
+  zoom: 10.5,
   maxZoom: 12,
   minZoom: 10,
   bearingSnap: 0,
@@ -13,19 +13,18 @@ const map = new mapboxgl.Map({
   dragRotate: false,
 });
 
-// Step 1: Load the CSV data with D3.js
 d3.csv("data/schools.csv").then(function (csvData) {
   // Create a dictionary to store CSV data by ZIP code
   let studentData = {};
   csvData.forEach(function (row) {
     studentData[row["Zip Code"]] = {
-      econDisadv: +row["Econ Disadv Count"],
-      totalStudents: +row["Total Student Count"],
-      percentDisadv: +row["Percent Disadvantaged"],
+      econDisadv: +row["Total_DisAdv"],
+      totalStudents: +row["Total_Students"],
+      percentDisadv: +row["Dis_Adv_Mean_Percent"],
       povertyPercent: +row["Zip Poverty Percent"],
-      percentCommunityDifference: +row["Percent Community Difference"],
+      percentCommunityDifference: +row["Percent_Community Difference"],
       population: +row["Population"],
-      numberOfSchools: +row["Number of Schools"],
+      numberOfSchools: +row["School Count"],
     };
   });
 
@@ -59,21 +58,6 @@ d3.csv("data/schools.csv").then(function (csvData) {
         type: "fill",
         source: "zip-codes",
         paint: {
-          "fill-color": [
-            "step",
-            ["get", "econDisadv"],
-            "#FFEDA0", // color for <= 200 students
-            500,
-            "#FEB24C",
-            1000,
-            "#FD8D3C",
-            1500,
-            "#FC4E2A",
-            2000,
-            "#E31A1C",
-            3000,
-            "#BD0026",
-          ],
           "fill-opacity": 0.6,
         },
       });
@@ -88,32 +72,50 @@ d3.csv("data/schools.csv").then(function (csvData) {
         },
       });
 
+      updateLegend();
+      updateMapColor();
+
+      document
+        .getElementById("color-metric")
+        .addEventListener("change", function () {
+          const selectedMetric = this.value;
+          updateLegend(selectedMetric);
+          updateMapColor(selectedMetric); // Assuming you already have this function defined
+        });
+
       // Step 5: Add popups to display ZIP code data
       map.on("click", "zip-codes-layer", (e) => {
         const properties = e.features[0].properties;
+        if (properties.numberOfSchools == 0) {
+          new mapboxgl.Popup()
+            .setLngLat(e.lngLat)
+            .setHTML("<br>No Schools")
+            .addTo(map);
+          return;
+        }
         new mapboxgl.Popup()
           .setLngLat(e.lngLat)
           .setHTML(
             `
-                            <strong>Zip Code: ${
-                              properties.zcta5ce10
-                            }</strong><br>
-                            Economically Disadvantaged: ${
-                              properties.econDisadv
-                            }<br>
-                            Total Students: ${properties.totalStudents}<br>
-                            Percent Disadvantaged: ${(
-                              properties.percentDisadv * 100
-                            ).toFixed(2)}%<br>
-                            Zip Poverty Percent: ${(
-                              properties.povertyPercent * 100
-                            ).toFixed(2)}%<br>
-                            Percent Community Difference: ${(
-                              properties.percentCommunityDifference * 100
-                            ).toFixed(2)}%<br>
-                            Population: ${properties.population}<br>
-                            Number of Schools: ${properties.numberOfSchools}
-                        `
+                                <strong>Zip Code: ${
+                                  properties.zcta5ce10
+                                }</strong><br>
+                                Economically Disadvantaged Students: ${properties.econDisadv.toFixed(
+                                  0
+                                )}<br>
+                                Total Students: ${properties.totalStudents}<br>
+                                Average Percent Disadvantaged: ${(
+                                  properties.percentDisadv * 100
+                                ).toFixed(2)}%<br>
+                                Poverty Percent of Zip: ${(
+                                  properties.povertyPercent * 100
+                                ).toFixed(2)}%<br>
+                                Student Disadvantaged Rate Relative to Community (% Difference): ${(
+                                  properties.percentCommunityDifference * 100
+                                ).toFixed(2)}%<br>
+                                Population of Zip: ${properties.population}<br>
+                                Number of Schools: ${properties.numberOfSchools}
+                            `
           )
           .addTo(map);
       });
@@ -130,3 +132,34 @@ d3.csv("data/schools.csv").then(function (csvData) {
     });
   });
 });
+
+// Function to update the map's fill color based on the selected metric
+function updateMapColor(metric) {
+  const colors = colorScales[metric] || colorScales["econDisadv"]; // Fallback to econDisadv if the metric is not found
+  map.setPaintProperty("zip-codes-layer", "fill-color", colors);
+}
+
+function updateLegend(metric) {
+  const legendItems = document.getElementById("legend-items");
+  legendItems.innerHTML = ""; // Clear any existing legend items
+
+  // Get the appropriate legend for the selected metric
+  const legend = legendData[metric] || legendData["econDisadv"];
+
+  // Create and append legend items
+  legend.forEach((item) => {
+    const legendItem = document.createElement("div");
+    legendItem.className = "legend-item";
+
+    const colorBox = document.createElement("div");
+    colorBox.className = "legend-color";
+    colorBox.style.backgroundColor = item.color;
+
+    const label = document.createElement("span");
+    label.textContent = item.label;
+
+    legendItem.appendChild(colorBox);
+    legendItem.appendChild(label);
+    legendItems.appendChild(legendItem);
+  });
+}
